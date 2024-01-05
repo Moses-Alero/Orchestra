@@ -7,7 +7,8 @@ This is purely for learning purposes but if I make something others can use that
 ## STEPS
 
 ### 1. Research and Plan
-Understand Containerization: Familiarize yourself with Docker and containerization principles. Explore Container Orchestration: Study how orchestration systems like Kubernetes or Docker Swarm work.
+*Understand Containerization*: Familiarize yourself with Docker and containerization principles.
+*Explore Container Orchestration*: Study how orchestration systems like Kubernetes or Docker Swarm work.
 
 ### 2. Setup Environment
 Install Docker: Set up Docker on your local machine or a server. 
