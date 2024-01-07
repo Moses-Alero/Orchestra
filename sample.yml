@@ -14,7 +14,7 @@ spec:
         app: sample-app
     spec:
       containers:
-        - name: sample-container
-          image: your_image_name:tag
+        - name: dock-me-baby
+          image: docker/welcome-to-docker
           ports:
             - containerPort: 8080
