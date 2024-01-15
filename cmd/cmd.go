@@ -59,7 +59,7 @@ var orchestra = &cobra.Command{
 
 		close(respChan)
 
-		cluster.StoreClusterInfo(clusterName, respIds)
+		cluster.StoreClusterInfo(clusterName, respIds, strconv.Itoa(port))
 		c := cluster.SetProxy(clusterName, ports)
 		c.StartProxy()	
 		fmt.Printf("The orchestra has started \n")

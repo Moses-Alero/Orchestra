@@ -63,7 +63,6 @@ func createContainerServer(addr string) *Server {
 }
 
 
-
 func LoadBalance(clusterPort string, ports []string) *LoadBalancer{
 	servers := make([]*Server, 0)
 	for _,port := range ports{

@@ -19,11 +19,12 @@ type Cluster struct {
 
 var clusters []*Cluster
 
-func StoreClusterInfo(clusterName string, containers []string) {
+func StoreClusterInfo(clusterName string, containers []string, port string) {
 	fmt.Println("New cluster")
 	cluster := Cluster{
 		Name: clusterName,
 		ContainerIds: containers,
+		Port: port,
 	}
 
 	clusters = append(clusters, &cluster)
