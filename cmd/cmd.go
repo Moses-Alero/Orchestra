@@ -3,8 +3,10 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strconv"
 
 	"orchestra/models"
+	"orchestra/pkg/cluster"
 	"orchestra/pkg/docker"
 
 	"github.com/spf13/cobra"
@@ -16,7 +18,7 @@ import (
 var orchestra = &cobra.Command{
 	Use: "start",
 	Short: "Start the orchestra",
-	Long: "Initiatest the orchestra",
+	Long: "Initiates the orchestra",
 	Run:func(cmd *cobra.Command, args []string){
 		fmt.Printf("Tuning the orcehstra \n")	
 			
@@ -25,7 +27,6 @@ var orchestra = &cobra.Command{
 		data, err := os.ReadFile(filePath)
 		
 		var ymlConfig models.Config 
-
 
 		if err != nil {
 			fmt.Println(err)
@@ -39,20 +40,29 @@ var orchestra = &cobra.Command{
 			return
 		}
 		
-		respIds := make([]interface{}, 0)
-    respChan := make(chan interface{})
+		respIds := make([]string, 0)
+		ports := make([]string, 0)
+    respChan := make(chan string)
 
+		port := ymlConfig.Spec.Template.Spec.Containers[0].Ports[0].ContainerPort
 
-		for i := 0; i <  ymlConfig.Spec.Replicas; i++{
- 			go docker.StartContainer(&ymlConfig, respChan)
+		for i := 1; i <  ymlConfig.Spec.Replicas + 1; i++{ 
+			containerPort := strconv.Itoa(port + i)
+			containerPortAddr := "http://localhost:" + containerPort 			
+			go docker.StartContainer(&ymlConfig, respChan, containerPort)
 			resp := <-respChan
+			ports = append(ports, containerPortAddr)
 			respIds = append(respIds, resp)
 		}
 
-		close(respChan)
-		fmt.Println(respIds)
+		clusterName := ymlConfig.Spec.Selector.MatchLabels.App
 
-		fmt.Printf("The orchestra has started")
+		close(respChan)
+
+		cluster.StoreClusterInfo(clusterName, respIds)
+		c := cluster.SetProxy(clusterName, ports)
+		c.StartProxy()	
+		fmt.Printf("The orchestra has started \n")
 	},
 }
 

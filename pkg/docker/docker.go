@@ -6,14 +6,14 @@ import (
 	"orchestra/models"
 
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	containertypes "github.com/docker/docker/api/types/container"
-  "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
-
+	"github.com/docker/go-connections/nat"
 )
 
-func StartContainer(config *models.Config, respChan chan <- interface{}){
-	ctx := context.Background()
+func StartContainer(config *models.Config, respChan chan <- string, port string){
+		ctx := context.Background()
 		dockerClient, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 		if err != nil {
 			fmt.Println(err)
@@ -21,31 +21,39 @@ func StartContainer(config *models.Config, respChan chan <- interface{}){
 		}
 
 		defer dockerClient.Close()
-
 		containerConfig := &container.Config{
-			Domainname: config.Spec.Template.Spec.Containers[0].Name,
 			Image: config.Spec.Template.Spec.Containers[0].Image,
 			Cmd: []string{},
 			Tty: false,
 		}
 
-		resp, err := dockerClient.ContainerCreate(ctx, containerConfig, nil, nil, nil, "")
+		portBindings := nat.PortMap{
+			"80/tcp": []nat.PortBinding{
+
+				{
+					HostIP: "0.0.0.0",
+					HostPort: port,
+				},
+			}, 
+		}
+		
+		hostConfig := &container.HostConfig{
+			PortBindings: portBindings,
+		}
+		resp, err := dockerClient.ContainerCreate(ctx, containerConfig, hostConfig, nil, nil, "")
 
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
 
-		fmt.Printf("Continer Response: %v \n", resp)
+		fmt.Printf("Container Response: %v \n", resp)
 		if err := dockerClient.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{}); err != nil {
 			fmt.Println(err)
 			return
 		}
 		
-		respChan  <- resp
-
-		fmt.Printf("Container ID: %s \n", resp.ID)
-  
+		respChan  <- resp.ID
 }
 
 func ListContainer(){
@@ -54,6 +62,7 @@ func ListContainer(){
 		if err != nil {
 			panic(err)
 		}
+
 		defer dockerClient.Close()
 
 		containers, err := dockerClient.ContainerList(ctx, types.ContainerListOptions{})
@@ -62,7 +71,11 @@ func ListContainer(){
 		}
 
 		for _, container := range containers {
-			fmt.Println(container.ID)
+			details, err :=dockerClient.ContainerInspect(ctx,container.ID)
+			if err != nil {
+				fmt.Println(err)
+			}
+			fmt.Println(*&details.HostnamePath)
 		}
 
 }
