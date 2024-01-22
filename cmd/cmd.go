@@ -66,6 +66,17 @@ var orchestra = &cobra.Command{
 	},
 }
 
+var InspectContainer = &cobra.Command{
+	Use: "inspect",
+	Short: "Inspect container",
+	Long: "Inspect Containers By Name",
+	Run: func(cmd *cobra.Command, args []string) {
+		containerName := args[0]
+		fmt.Println("I think shit breaks here")
+		cluster.GetContainerInfo(containerName)
+		fmt.Println("")
+	},
+}
 
 var listContainers = &cobra.Command{
 	Use: "list",

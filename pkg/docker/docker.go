@@ -2,6 +2,7 @@ package docker
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"orchestra/models"
 
@@ -11,6 +12,24 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 )
+
+type ContainerBasicInfo struct{
+	ID     string   `json:"id"`
+	Name   string
+	State  *types.ContainerState
+}
+
+type ContainerInfo struct{
+	ContainerBasicInfo
+	Created         string
+	Path            string
+	Args            []string
+	Image           string
+	ResolvConfPath  string
+	HostnamePath    string
+	HostsPath       string
+	LogPath         string
+}
 
 func StartContainer(config *models.Config, respChan chan <- string, port string){
 		ctx := context.Background()
@@ -56,6 +75,28 @@ func StartContainer(config *models.Config, respChan chan <- string, port string)
 		respChan  <- resp.ID
 }
 
+func GetContainerInfo(containerId string) (*ContainerBasicInfo, error){
+	ctx := context.Background()
+	dockerClient, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		return nil, err
+	}
+	
+	defer dockerClient.Close()
+
+	container, err := dockerClient.ContainerInspect(ctx, containerId)
+	if err != nil {
+		return nil, err
+	}
+
+	containerInfo := &ContainerBasicInfo{
+		ID: container.ID,
+		Name: container.Name,
+	}
+
+	return containerInfo, nil
+}
+
 func ListContainer(){
 		ctx := context.Background()
 		dockerClient, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
@@ -75,7 +116,16 @@ func ListContainer(){
 			if err != nil {
 				fmt.Println(err)
 			}
-			fmt.Println(*&details.HostnamePath)
+			
+			container := *&details.ContainerJSONBase
+
+			containerInfo := ContainerBasicInfo{
+				ID: container.ID,
+				Name: container.Name,
+				State: container.State,
+			}
+			d,_ := json.MarshalIndent(containerInfo, "", "  " )
+			fmt.Println(string(d))
 		}
 
 }

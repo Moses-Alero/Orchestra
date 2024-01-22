@@ -41,7 +41,6 @@ func (lb *LoadBalancer) ServeProxy(rw http.ResponseWriter, req *http.Request) {
 	targetServer.Serve(rw, req)
 }
 
-
 func  NewLoadBalancer(port string, servers []*Server) *LoadBalancer{
 	return &LoadBalancer{
 		Port: port,

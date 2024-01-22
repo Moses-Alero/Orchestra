@@ -7,6 +7,7 @@ import (
 
 func init(){
 	root.AddCommand(orchestra)
+	root.AddCommand(InspectContainer)
 	root.AddCommand(listContainers)
 	root.AddCommand(stopAllContainers)
 }

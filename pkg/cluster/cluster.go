@@ -1,9 +1,10 @@
 package cluster
 
 import (
-	"errors"
 	"fmt"
+	"log"
 	"net/http"
+	"orchestra/pkg/docker"
 	"orchestra/pkg/load-balancing"
 )
 
@@ -14,45 +15,64 @@ type Cluster struct {
 	ContainerIds  []string 
 	Port   string
 	LoadBalancer *lb.LoadBalancer
+	ContainerMap  map[string]string
 }
 
 
-var clusters []*Cluster
+var Orchestra *Cluster
+
 
 func StoreClusterInfo(clusterName string, containers []string, port string) {
 	fmt.Println("New cluster")
-	cluster := Cluster{
+	
+	containerMap := make(map[string]string)
+	for _, containerId := range containers{
+		containerInfo, err := docker.GetContainerInfo(containerId)
+		if err != nil{
+			log.Fatal(err)
+		}
+		containerMap[containerInfo.Name] = containerId
+	}
+
+
+Orchestra = &Cluster{
 		Name: clusterName,
 		ContainerIds: containers,
 		Port: port,
+		ContainerMap: containerMap,
 	}
-
-	clusters = append(clusters, &cluster)
+	fmt.Println(Orchestra.ContainerMap)
 	fmt.Println("Cluster saved, name: ",clusterName)
 }
 
-func FindCluster(clusterName string) (*Cluster, error){
-	for _, cluster := range clusters {
-		if clusterName == cluster.Name{
-			return cluster, nil	
-		}
-	}
-		
-	return nil, errors.New("Cluster not found")
-
-} 
 
 func SetProxy(clusterName string, ports []string) *Cluster{
-	 	cluster, _ := FindCluster(clusterName)
 		//setup port for cluster 
-		cluster.LoadBalancer = lb.LoadBalance(cluster.Port, ports)
-	  return 	cluster
+		Orchestra.LoadBalancer = lb.LoadBalance(Orchestra.Port, ports)
+	  return 	Orchestra
 }
 
+func GetOrchestra() *Cluster{
+	return Orchestra
+}
 
-
+//implement more info Display herer
 func (c *Cluster) ClusterInfo() *Cluster {
 	return c
+}
+
+func  GetContainerInfo(containerName string){
+		fmt.Println("Map: ",Orchestra.ContainerMap)
+		//val, ok := Orchestra.ContainerMap[containerName]	
+		//if !ok {
+		// log.Fatal("no container named ", containerName)
+		//} 
+		//info, err := docker.GetContainerInfo(val)
+		//if err != nil{
+		//	log.Fatal(err)
+		//}
+		//return info
+
 }
 
 func (c *Cluster) StartProxy(){

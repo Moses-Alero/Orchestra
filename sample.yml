@@ -17,4 +17,4 @@ spec:
         - name: dock-me-baby
           image: docker/welcome-to-docker
           ports:
-            - containerPort: 8080
+            - containerPort: 8000
