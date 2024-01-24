@@ -8,6 +8,7 @@ import (
 	"orchestra/models"
 	"orchestra/pkg/cluster"
 	"orchestra/pkg/docker"
+	"orchestra/utils"
 
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
@@ -21,7 +22,13 @@ var orchestra = &cobra.Command{
 	Long: "Initiates the orchestra",
 	Run:func(cmd *cobra.Command, args []string){
 		fmt.Printf("Tuning the orcehstra \n")	
-			
+
+		if utils.CheckForOrchestraInfo()	{
+			fmt.Printf("rerer")
+			docker.StopAllContainers()
+			utils.RemoveOrchestraInfo()
+		}
+
 		filePath := args[0]
 
 		data, err := os.ReadFile(filePath)
@@ -72,9 +79,18 @@ var InspectContainer = &cobra.Command{
 	Long: "Inspect Containers By Name",
 	Run: func(cmd *cobra.Command, args []string) {
 		containerName := args[0]
-		fmt.Println("I think shit breaks here")
-		cluster.GetContainerInfo(containerName)
-		fmt.Println("")
+		info := cluster.GetContainerInfo(containerName)
+		fmt.Println(info)
+	},
+}
+
+var OrchestraInfo = &cobra.Command{
+	Use: "info",
+	Short: "Orchestra Info",
+	Long: "Get all the neccessary info about the orchestra(Cluster)",
+	Run: func(cmd *cobra.Command, args []string){
+		c := cluster.Orchestra.ClusterInfo()
+		fmt.Println(c)
 	},
 }
 
@@ -94,5 +110,6 @@ var stopAllContainers = &cobra.Command{
 	Long: "Stops all running containers in the orchestra",
 	Run: func(cmd *cobra.Command, args []string){
 		docker.StopAllContainers()
+		utils.RemoveOrchestraInfo()
 	},
 } 

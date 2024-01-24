@@ -92,6 +92,7 @@ func GetContainerInfo(containerId string) (*ContainerBasicInfo, error){
 	containerInfo := &ContainerBasicInfo{
 		ID: container.ID,
 		Name: container.Name,
+		State: container.State,
 	}
 
 	return containerInfo, nil

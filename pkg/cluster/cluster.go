@@ -1,25 +1,17 @@
 package cluster
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
-	"net/http"
+	"orchestra/models"
 	"orchestra/pkg/docker"
 	"orchestra/pkg/load-balancing"
+	"orchestra/utils"
 )
 
 
-
-type Cluster struct {
-	Name   string
-	ContainerIds  []string 
-	Port   string
-	LoadBalancer *lb.LoadBalancer
-	ContainerMap  map[string]string
-}
-
-
-var Orchestra *Cluster
+var Orchestra *models.Cluster
 
 
 func StoreClusterInfo(clusterName string, containers []string, port string) {
@@ -35,54 +27,48 @@ func StoreClusterInfo(clusterName string, containers []string, port string) {
 	}
 
 
-Orchestra = &Cluster{
+Orchestra = &models.Cluster{
 		Name: clusterName,
 		ContainerIds: containers,
 		Port: port,
 		ContainerMap: containerMap,
 	}
+
+	utils.StoreOrchestraInfo(Orchestra)
+
 	fmt.Println(Orchestra.ContainerMap)
 	fmt.Println("Cluster saved, name: ",clusterName)
+	
 }
 
 
-func SetProxy(clusterName string, ports []string) *Cluster{
+func  GetContainerInfo(containerName string) *docker.ContainerBasicInfo{
+	orchestra := utils.GetOrchestraInfo()
+
+	val, ok := orchestra.ContainerMap[containerName]	
+	if !ok {
+		log.Fatal("no container named ", containerName)
+	} 
+	info, err := docker.GetContainerInfo(val)
+	if err != nil{
+			log.Fatal(err)
+	}
+	
+	jsonOutput, _ := json.MarshalIndent(info, "", " ")
+	fmt.Println(string(jsonOutput))
+	return info
+
+}
+
+
+func SetProxy(clusterName string, ports []string) *models.Cluster{
 		//setup port for cluster 
 		Orchestra.LoadBalancer = lb.LoadBalance(Orchestra.Port, ports)
 	  return 	Orchestra
 }
 
-func GetOrchestra() *Cluster{
+func GetOrchestra() *models.Cluster{
 	return Orchestra
 }
 
-//implement more info Display herer
-func (c *Cluster) ClusterInfo() *Cluster {
-	return c
-}
 
-func  GetContainerInfo(containerName string){
-		fmt.Println("Map: ",Orchestra.ContainerMap)
-		//val, ok := Orchestra.ContainerMap[containerName]	
-		//if !ok {
-		// log.Fatal("no container named ", containerName)
-		//} 
-		//info, err := docker.GetContainerInfo(val)
-		//if err != nil{
-		//	log.Fatal(err)
-		//}
-		//return info
-
-}
-
-func (c *Cluster) StartProxy(){
-	handleRedirect := func(rw http.ResponseWriter, req *http.Request) {
-		c.LoadBalancer.ServeProxy(rw, req)
-	}
-
-	// register a proxy handler to handle all requests
-	http.HandleFunc("/", handleRedirect)
-
-	fmt.Printf("serving requests at 'http://localhost:%s'\n", c.Port)
-	http.ListenAndServe(":"+c.Port, nil)
-}
