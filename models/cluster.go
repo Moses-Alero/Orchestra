@@ -1,6 +1,5 @@
 package models
 
-
 import (
 	"fmt"
 	"net/http"
@@ -8,20 +7,19 @@ import (
 )
 
 type Cluster struct {
-	Name   string
-	ContainerIds  []string 
-	Port   string
+	Name         string
+	ContainerIds []string
+	Port         string
 	LoadBalancer *lb.LoadBalancer
-	ContainerMap  map[string]string
+	ContainerMap map[string]string
 }
 
-//implement more info Display herer
+// implement more info Display herer
 func (c *Cluster) ClusterInfo() *Cluster {
 	return c
 }
 
-
-func (c *Cluster) StartProxy(){
+func (c *Cluster) StartProxy() {
 	handleRedirect := func(rw http.ResponseWriter, req *http.Request) {
 		c.LoadBalancer.ServeProxy(rw, req)
 	}

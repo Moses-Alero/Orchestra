@@ -1,11 +1,10 @@
 package cmd
 
 import (
-	
 	"github.com/spf13/cobra"
 )
 
-func init(){
+func init() {
 	root.AddCommand(orchestra)
 	root.AddCommand(InspectContainer)
 	root.AddCommand(listContainers)
@@ -14,11 +13,11 @@ func init(){
 }
 
 var root = &cobra.Command{
-	Use: "orchestra",
+	Use:   "orchestra",
 	Short: "Container Orchestra",
-	Long: "Container Orchestration tool for managing docker container clusters",
+	Long:  "Container Orchestration tool for managing docker container clusters",
 }
 
-func Execute() error{
-		return root.Execute()
+func Execute() error {
+	return root.Execute()
 }

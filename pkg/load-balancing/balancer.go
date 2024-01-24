@@ -8,22 +8,21 @@ import (
 )
 
 type LoadBalancer struct {
-	Servers   []*Server
+	Servers         []*Server
 	RoundRobinCount int
-	Port      string
+	Port            string
 }
 
 type Server struct {
-  Addr string
+	Addr  string
 	Proxy *httputil.ReverseProxy
 }
 
 func (s *Server) Address() string { return s.Addr }
-func (s *Server) IsAlive() bool { return true }
+func (s *Server) IsAlive() bool   { return true }
 func (s *Server) Serve(rw http.ResponseWriter, req *http.Request) {
 	s.Proxy.ServeHTTP(rw, req)
 }
-
 
 func (lb *LoadBalancer) getNextAvailableServer() *Server {
 	server := lb.Servers[lb.RoundRobinCount%len(lb.Servers)]
@@ -41,11 +40,11 @@ func (lb *LoadBalancer) ServeProxy(rw http.ResponseWriter, req *http.Request) {
 	targetServer.Serve(rw, req)
 }
 
-func  NewLoadBalancer(port string, servers []*Server) *LoadBalancer{
+func NewLoadBalancer(port string, servers []*Server) *LoadBalancer {
 	return &LoadBalancer{
-		Port: port,
+		Port:            port,
 		RoundRobinCount: 0,
-		Servers: servers,
+		Servers:         servers,
 	}
 }
 
@@ -61,17 +60,14 @@ func createContainerServer(addr string) *Server {
 	}
 }
 
-
-func LoadBalance(clusterPort string, ports []string) *LoadBalancer{
+func LoadBalance(clusterPort string, ports []string) *LoadBalancer {
 	servers := make([]*Server, 0)
-	for _,port := range ports{
+	for _, port := range ports {
 		server := createContainerServer(port)
 		servers = append(servers, server)
 	}
 
-  lb := NewLoadBalancer(clusterPort, servers)	
+	lb := NewLoadBalancer(clusterPort, servers)
 
 	return lb
 }
-
-
