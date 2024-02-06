@@ -3,10 +3,11 @@ package models
 import (
 	"fmt"
 	"net/http"
-	"orchestra/pkg/load-balancing"
+	lb "orchestra/pkg/load-balancing"
 )
 
 type Cluster struct {
+	PID          int
 	Name         string
 	ContainerIds []string
 	Port         string
@@ -14,7 +15,7 @@ type Cluster struct {
 	ContainerMap map[string]string
 }
 
-// implement more info Display herer
+// implement more info Display here
 func (c *Cluster) ClusterInfo() *Cluster {
 	return c
 }

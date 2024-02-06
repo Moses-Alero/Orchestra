@@ -19,10 +19,9 @@ var orchestra = &cobra.Command{
 	Short: "Start the orchestra",
 	Long:  "Initiates the orchestra",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("Tuning the orcehstra \n")
+		fmt.Printf("Tuning the orchestra \n")
 
 		if utils.CheckForOrchestraInfo() {
-			fmt.Printf("rerer")
 			docker.StopAllContainers()
 			utils.RemoveOrchestraInfo()
 		}
@@ -87,8 +86,8 @@ var OrchestraInfo = &cobra.Command{
 	Short: "Orchestra Info",
 	Long:  "Get all the neccessary info about the orchestra(Cluster)",
 	Run: func(cmd *cobra.Command, args []string) {
-		c := cluster.Orchestra.ClusterInfo()
-		fmt.Println(c)
+		orchestra := utils.GetOrchestraInfo()
+		fmt.Println(orchestra)
 	},
 }
 
@@ -106,7 +105,8 @@ var stopAllContainers = &cobra.Command{
 	Short: "stops containers",
 	Long:  "Stops all running containers in the orchestra",
 	Run: func(cmd *cobra.Command, args []string) {
-		docker.StopAllContainers()
+		docker.RemoveAllContainers()
+		utils.StopServerProcess()
 		utils.RemoveOrchestraInfo()
 	},
 }

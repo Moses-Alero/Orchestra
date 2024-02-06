@@ -6,8 +6,9 @@ import (
 	"log"
 	"orchestra/models"
 	"orchestra/pkg/docker"
-	"orchestra/pkg/load-balancing"
+	lb "orchestra/pkg/load-balancing"
 	"orchestra/utils"
+	"os"
 )
 
 var Orchestra *models.Cluster
@@ -23,8 +24,10 @@ func StoreClusterInfo(clusterName string, containers []string, port string) {
 		}
 		containerMap[containerInfo.Name] = containerId
 	}
+	pid := os.Getpid()
 
 	Orchestra = &models.Cluster{
+		PID:          pid,
 		Name:         clusterName,
 		ContainerIds: containers,
 		Port:         port,

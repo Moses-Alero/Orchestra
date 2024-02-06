@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"orchestra/models"
+	"orchestra/utils"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -147,8 +148,31 @@ func StopAllContainers() {
 	for _, container := range containers {
 		fmt.Print("Stopping container ", container.ID[:10], "... ")
 		noWaitTimeout := 0 // to not wait for the container to exit gracefully
-		stpOtions := containertypes.StopOptions{Timeout: &noWaitTimeout}
-		if err := dockerClient.ContainerStop(ctx, container.ID, stpOtions); err != nil {
+		stpOptions := containertypes.StopOptions{Timeout: &noWaitTimeout}
+		if err := dockerClient.ContainerStop(ctx, container.ID, stpOptions); err != nil {
+			panic(err)
+		}
+		fmt.Println("Success")
+	}
+}
+
+func RemoveAllContainers() {
+	ctx := context.Background()
+	dockerClient, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		panic(err)
+	}
+	defer dockerClient.Close()
+
+	containers := utils.GetContainerIDs()
+
+	for _, container := range containers {
+		fmt.Print("Stopping container ", container[:10], "... ")
+		rmOptions := types.ContainerRemoveOptions{
+			Force:         true,
+			RemoveVolumes: true,
+		}
+		if err := dockerClient.ContainerRemove(ctx, container, rmOptions); err != nil {
 			panic(err)
 		}
 		fmt.Println("Success")

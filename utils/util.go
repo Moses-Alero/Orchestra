@@ -2,9 +2,12 @@ package utils
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"orchestra/models"
 	"os"
+	"os/exec"
+	"strconv"
 )
 
 const orchestraInfoJSON string = ".orchestra.json"
@@ -34,6 +37,22 @@ func GetOrchestraInfo() *models.Cluster {
 	}
 
 	return &orchestra
+}
+
+func GetContainerIDs() []string {
+	return GetOrchestraInfo().ContainerIds
+}
+
+func StopServerProcess() {
+	pid := GetOrchestraInfo().PID
+	stopServerProcess := exec.Command("kill", "-SIGINT", strconv.Itoa(pid))
+	if err := stopServerProcess.Run(); err != nil {
+		fmt.Println("Server failed to stop")
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Println("Server has been terminated")
 }
 
 func CheckForOrchestraInfo() bool {
